@@ -1,23 +1,34 @@
 package dev.arildo.tuner
 
+import kotlin.math.abs
+
 object Notes {
 
-    val C = listOf(65.41, 130.8, 261.6, 523.3, 1047.0, 2093.0)
-    val C_SHARP = listOf(69.3, 138.6, 277.2, 554.4, 1109.0, 2217.0)
+    private fun getClosestFrequency(pitchHz: Float): Double? {
+        val generalList = mutableListOf<Double?>()
 
-    val D = listOf(73.42, 146.8, 293.7, 587.3, 1175.0, 2349.0)
-    val D_SHARP = listOf(77.78, 155.6, 311.1, 622.3, 1245.0, 2489.0)
+        generalList.add(NotesEnum.C.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.C_SHARP.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.D.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.D_SHARP.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.E.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.F.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.F_SHARP.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.G.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.G_SHARP.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.A.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.A_SHARP.value.closestValue(pitchHz.toDouble()))
+        generalList.add(NotesEnum.B.value.closestValue(pitchHz.toDouble()))
 
-    val E = listOf(82.41, 164.8, 329.6, 659.3, 1319.0, 2637.0)
+        return generalList.closestValue(pitchHz.toDouble())
+    }
 
-    val F = listOf(87.31, 174.6, 349.2, 698.5, 1397.0, 2794.0)
-    val F_SHARP = listOf(92.5, 185.0, 370.0, 740.0, 1480.0, 2960.0)
+    fun getClosestNote(pitchHz: Float): String {
+        val closestFrequency = getClosestFrequency(pitchHz)
 
-    val G = listOf(98.0, 196.0, 392.0, 784.0, 1568.0, 3136.0)
-    val G_SHARP = listOf(103.8, 207.7, 415.3, 830.6, 1661.0, 3322.0)
+        return NotesEnum.getNoteByFrequency(closestFrequency).title
+    }
 
-    val A = listOf(110.0, 220.0, 330.0, 440.0, 880.0, 1760.0, 3520.0)
-    val A_SHARP = listOf(116.5, 233.1, 466.2, 932.3, 1865.0, 3729.0)
+    private fun List<Double?>.closestValue(value: Double) = minByOrNull { abs(value - it!!) }
 
-    val B = listOf(123.5, 246.9, 493.9, 987.8, 1976.0, 3951.0)
 }
