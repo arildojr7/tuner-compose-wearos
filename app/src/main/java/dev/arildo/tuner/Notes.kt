@@ -1,34 +1,38 @@
 package dev.arildo.tuner
 
+import androidx.wear.compose.material.ExperimentalWearMaterialApi
+import dev.arildo.tuner.NotesEnum.Companion.getClosestFrequencyInAllNotes
 import kotlin.math.abs
 
+@ExperimentalWearMaterialApi
 object Notes {
 
-    private fun getClosestFrequency(pitchHz: Float): Double? {
-        val generalList = mutableListOf<Double?>()
+    fun howMuchIsOutOfTune(pitchHz: Double): TunerState {
+        val closestFrequency = getClosestFrequencyInAllNotes(pitchHz)
+        val closestNote = getClosestNote(pitchHz)
 
-        generalList.add(NotesEnum.C.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.C_SHARP.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.D.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.D_SHARP.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.E.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.F.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.F_SHARP.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.G.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.G_SHARP.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.A.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.A_SHARP.value.closestValue(pitchHz.toDouble()))
-        generalList.add(NotesEnum.B.value.closestValue(pitchHz.toDouble()))
+        val diff: Double = if (closestFrequency > pitchHz) {
+            abs(closestFrequency - pitchHz).unaryMinus()
+        } else {
+            abs(pitchHz - closestFrequency)
+        }
 
-        return generalList.closestValue(pitchHz.toDouble())
+        return when {
+            diff.isInPermittedTolerance() -> {
+                TunerState.Tuned(closestNote)
+            }
+            diff < -1.0 -> {
+                TunerState.Down(closestNote)
+            }
+            else -> {
+                TunerState.Up(closestNote)
+            }
+        }
     }
 
-    fun getClosestNote(pitchHz: Float): String {
-        val closestFrequency = getClosestFrequency(pitchHz)
+    private fun getClosestNote(pitchHz: Double): NotesEnum {
+        val closestFrequency = getClosestFrequencyInAllNotes(pitchHz)
 
-        return NotesEnum.getNoteByFrequency(closestFrequency).title
+        return NotesEnum.getNoteByFrequency(closestFrequency)
     }
-
-    private fun List<Double?>.closestValue(value: Double) = minByOrNull { abs(value - it!!) }
-
 }
