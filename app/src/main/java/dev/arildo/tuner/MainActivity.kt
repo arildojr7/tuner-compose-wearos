@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         preventAutoLockScreen(window)
 
-        requestPermission()
+        requestMicrophonePermission()
 
         setContent {
             MaterialTheme {
@@ -59,40 +59,6 @@ class MainActivity : ComponentActivity() {
 
         val audioThread = Thread(dispatcher, "Audio Thread")
         audioThread.start()
-    }
-
-    private fun requestPermission() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.RECORD_AUDIO
-            )
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
-                1234
-            );
-        }
-    }
-
-    @Composable
-    fun Layout(color: Color, letter: String) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            Text(
-                text = letter, modifier = Modifier.wrapContentSize(),
-                textAlign = TextAlign.Center,
-                fontSize = 64.sp
-            )
-        }
-
     }
 
     @Preview(widthDp = 200, heightDp = 200)
