@@ -1,48 +1,28 @@
 package dev.arildo.tuner
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import be.tarsos.dsp.AudioProcessor
 import be.tarsos.dsp.io.android.AudioDispatcherFactory
 import be.tarsos.dsp.pitch.PitchDetectionHandler
 import be.tarsos.dsp.pitch.PitchProcessor
-import dev.arildo.tuner.Notes.getClosestNote
-import dev.arildo.tuner.theme.OutOfTune
-import dev.arildo.tuner.theme.Tuned
+import dev.arildo.tuner.Notes.howMuchIsOutOfTune
 
 @ExperimentalWearMaterialApi
 class MainActivity : ComponentActivity() {
 
-    private val noteState = MutableLiveData<String>()
-
-    companion object {
-        const val MIC_THRESHOLD = -60
-    }
+    private val noteState = MutableLiveData<TunerState>()
+    private val dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0)
+    private var lastPitchUpdate = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,22 +32,24 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                Scaffold(timeText = { TimeText() }) {
-                    Layout(Tuned, noteState.observeAsState().value.orEmpty())
+                Scaffold(
+                    timeText = { TimeText() }
+                ) {
+                    TunerScreen(noteState.observeAsState().value)
                 }
             }
         }
 
-        val dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0)
+        setupAudioListener()
+    }
+
+    private fun setupAudioListener() {
         val pdh = PitchDetectionHandler { res, audioEvent ->
-            val pitchInHz = res.pitch
-
-            Log.e("RMS >>>> ", audioEvent.getdBSPL().toString())
-
-            if (audioEvent.getdBSPL() > MIC_THRESHOLD) {
-                noteState.postValue(getClosestNote(pitchInHz))
+            val pitchInHz = res.pitch.toDouble()
+            if (audioEvent.getdBSPL() > MIC_THRESHOLD && System.currentTimeMillis() - lastPitchUpdate > 300) {
+                noteState.postValue(howMuchIsOutOfTune(pitchInHz))
+                lastPitchUpdate = System.currentTimeMillis()
             }
-
         }
         val pitchProcessor: AudioProcessor = PitchProcessor(
             PitchProcessor.PitchEstimationAlgorithm.FFT_YIN,
@@ -116,12 +98,22 @@ class MainActivity : ComponentActivity() {
     @Preview(widthDp = 200, heightDp = 200)
     @Composable
     fun TunedView() {
-        Layout(Tuned, "A")
+        TunerScreen(TunerState.Tuned(NotesEnum.A))
     }
 
     @Preview(widthDp = 200, heightDp = 200)
     @Composable
-    fun OutOfTuneView() {
-        Layout(OutOfTune, "B")
+    fun OutOfTuneViewDown() {
+        TunerScreen(TunerState.Down(NotesEnum.A))
+    }
+
+    @Preview(widthDp = 200, heightDp = 200)
+    @Composable
+    fun OutOfTuneViewUp() {
+        TunerScreen(TunerState.Up(NotesEnum.A))
+    }
+
+    companion object {
+        const val MIC_THRESHOLD = -60
     }
 }
