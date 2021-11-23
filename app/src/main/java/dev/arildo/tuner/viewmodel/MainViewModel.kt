@@ -1,4 +1,4 @@
-package dev.arildo.tuner
+package dev.arildo.tuner.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -10,8 +10,12 @@ import be.tarsos.dsp.io.android.AudioDispatcherFactory
 import be.tarsos.dsp.pitch.PitchDetectionHandler
 import be.tarsos.dsp.pitch.PitchProcessor
 import be.tarsos.dsp.pitch.PitchProcessor.PitchEstimationAlgorithm
+import dev.arildo.tuner.core.NotesEnum
+import dev.arildo.tuner.core.TunerState
+import dev.arildo.tuner.core.isInPermittedTolerance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @ExperimentalWearMaterialApi
 class MainViewModel : ViewModel() {
@@ -40,10 +44,27 @@ class MainViewModel : ViewModel() {
     private fun pitchDetectionHandler() = PitchDetectionHandler { result, audioEvent ->
         val pitchInHz = result.pitch.toDouble()
         if (shouldUpdateTunerState(pitchInHz, audioEvent)) {
-            val capturedNoteState = Notes.getCurrentPitchState(pitchInHz)
+            val capturedNoteState = getCurrentPitchState(pitchInHz)
             _tunerState.postValue(capturedNoteState)
 
             saveLastUpdatedTime()
+        }
+    }
+
+    private fun getCurrentPitchState(pitchHz: Double): TunerState {
+        val closestFrequency = NotesEnum.getClosestFrequencyInAllNotes(pitchHz)
+        val note = NotesEnum.getNoteByFrequency(closestFrequency)
+
+        val diff = if (closestFrequency > pitchHz) {
+            abs(closestFrequency - pitchHz).unaryMinus()
+        } else {
+            abs(pitchHz - closestFrequency)
+        }
+
+        return when {
+            diff.isInPermittedTolerance() -> TunerState.Tuned(note)
+            diff < -0.5 -> TunerState.Down(note)
+            else -> TunerState.Up(note)
         }
     }
 

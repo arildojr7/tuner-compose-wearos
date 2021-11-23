@@ -1,4 +1,4 @@
-package dev.arildo.tuner
+package dev.arildo.tuner.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -24,6 +24,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Text
+import dev.arildo.tuner.R
+import dev.arildo.tuner.core.TunerState
 
 @Composable
 fun TunerScreen(tunerState: TunerState) {

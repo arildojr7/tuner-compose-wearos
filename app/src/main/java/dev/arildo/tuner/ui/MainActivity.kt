@@ -1,4 +1,4 @@
-package dev.arildo.tuner
+package dev.arildo.tuner.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,6 +11,11 @@ import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
+import dev.arildo.tuner.viewmodel.MainViewModel
+import dev.arildo.tuner.core.NotesEnum
+import dev.arildo.tuner.core.TunerState
+import dev.arildo.tuner.core.preventAutoLockScreen
+import dev.arildo.tuner.core.requestMicrophonePermission
 
 @ExperimentalWearMaterialApi
 class MainActivity : ComponentActivity() {

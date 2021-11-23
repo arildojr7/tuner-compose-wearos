@@ -1,4 +1,4 @@
-package dev.arildo.tuner
+package dev.arildo.tuner.core
 
 import android.Manifest
 import android.app.Activity

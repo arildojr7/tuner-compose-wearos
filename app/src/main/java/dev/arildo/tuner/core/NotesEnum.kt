@@ -1,4 +1,4 @@
-package dev.arildo.tuner
+package dev.arildo.tuner.core
 
 enum class NotesEnum(val title: String, val value: List<Double>) {
     C("C", listOf(65.41, 130.8, 261.6, 523.3, 1047.0, 2093.0)),

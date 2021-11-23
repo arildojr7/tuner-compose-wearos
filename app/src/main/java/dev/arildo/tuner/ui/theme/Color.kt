@@ -1,4 +1,4 @@
-package dev.arildo.tuner.theme
+package dev.arildo.tuner.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
