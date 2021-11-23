@@ -32,7 +32,7 @@ enum class NotesEnum(val title: String, val value: List<Double>) {
             return NONE
         }
 
-        fun getClosestFrequencyInAllNotes(pitchHz : Double) : Double {
+        fun getClosestFrequencyInAllNotes(pitchHz: Double): Double {
             val closestFrequencies = mutableListOf<Double>()
 
             values().forEach {
