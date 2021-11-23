@@ -19,15 +19,9 @@ object Notes {
         }
 
         return when {
-            diff.isInPermittedTolerance() -> {
-                TunerState.Tuned(closestNote)
-            }
-            diff < -1.0 -> {
-                TunerState.Down(closestNote)
-            }
-            else -> {
-                TunerState.Up(closestNote)
-            }
+            diff.isInPermittedTolerance() -> TunerState.Tuned(note)
+            diff < -0.5 -> TunerState.Down(note)
+            else -> TunerState.Up(note)
         }
     }
 
