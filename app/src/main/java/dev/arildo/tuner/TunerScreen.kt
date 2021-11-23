@@ -18,37 +18,41 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Text
 
 @Composable
-fun TunerScreen(tunerState: TunerState?) {
+fun TunerScreen(tunerState: TunerState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(tunerState?.bgColor ?: Color.Black),
+            .background(tunerState.bgColor),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             LeftArrow(isVisible = tunerState is TunerState.Down)
-
-            Text(
-                text = tunerState?.note?.title.orEmpty(),
-                modifier = Modifier
-                    .width(84.dp)
-                    .wrapContentHeight(),
-                textAlign = TextAlign.Center,
-                fontSize = 64.sp
-            )
-
+            TextNote(note = tunerState.note.title)
             RightArrow(isVisible = tunerState is TunerState.Up)
         }
     }
+}
+
+@Composable
+private fun TextNote(note: String?) {
+    Text(
+        text = note.orEmpty(),
+        textAlign = TextAlign.Center,
+        fontWeight = FontWeight.Medium,
+        fontSize = 64.sp,
+        modifier = Modifier
+            .width(84.dp)
+            .wrapContentHeight()
+    )
 }
 
 @Composable

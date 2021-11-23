@@ -2,16 +2,17 @@ package dev.arildo.tuner
 
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import dev.arildo.tuner.NotesEnum.Companion.getClosestFrequencyInAllNotes
+import dev.arildo.tuner.NotesEnum.Companion.getNoteByFrequency
 import kotlin.math.abs
 
 @ExperimentalWearMaterialApi
 object Notes {
 
-    fun howMuchIsOutOfTune(pitchHz: Double): TunerState {
+    fun getCurrentPitchState(pitchHz: Double): TunerState {
         val closestFrequency = getClosestFrequencyInAllNotes(pitchHz)
-        val closestNote = getClosestNote(pitchHz)
+        val note = getNoteByFrequency(closestFrequency)
 
-        val diff: Double = if (closestFrequency > pitchHz) {
+        val diff = if (closestFrequency > pitchHz) {
             abs(closestFrequency - pitchHz).unaryMinus()
         } else {
             abs(pitchHz - closestFrequency)
@@ -30,9 +31,4 @@ object Notes {
         }
     }
 
-    private fun getClosestNote(pitchHz: Double): NotesEnum {
-        val closestFrequency = getClosestFrequencyInAllNotes(pitchHz)
-
-        return NotesEnum.getNoteByFrequency(closestFrequency)
-    }
 }

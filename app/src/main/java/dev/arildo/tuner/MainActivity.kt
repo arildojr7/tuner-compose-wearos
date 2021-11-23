@@ -11,11 +11,12 @@ import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
+import be.tarsos.dsp.AudioEvent
 import be.tarsos.dsp.AudioProcessor
 import be.tarsos.dsp.io.android.AudioDispatcherFactory
 import be.tarsos.dsp.pitch.PitchDetectionHandler
 import be.tarsos.dsp.pitch.PitchProcessor
-import dev.arildo.tuner.Notes.howMuchIsOutOfTune
+import dev.arildo.tuner.Notes.getCurrentPitchState
 
 @ExperimentalWearMaterialApi
 class MainActivity : ComponentActivity() {
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     timeText = { TimeText() }
                 ) {
-                    TunerScreen(noteState.observeAsState().value)
+                    noteState.observeAsState().value?.run { TunerScreen(this) }
                 }
             }
         }
@@ -46,9 +47,9 @@ class MainActivity : ComponentActivity() {
     private fun setupAudioListener() {
         val pdh = PitchDetectionHandler { res, audioEvent ->
             val pitchInHz = res.pitch.toDouble()
-            if (audioEvent.getdBSPL() > MIC_THRESHOLD && System.currentTimeMillis() - lastPitchUpdate > 300) {
-                noteState.postValue(howMuchIsOutOfTune(pitchInHz))
-                lastPitchUpdate = System.currentTimeMillis()
+            if (shouldUpdateTunerState(pitchInHz, audioEvent)) {
+                noteState.postValue(getCurrentPitchState(pitchInHz))
+                saveLastUpdatedState()
             }
         }
         val pitchProcessor: AudioProcessor = PitchProcessor(
@@ -61,23 +62,27 @@ class MainActivity : ComponentActivity() {
         audioThread.start()
     }
 
-    @Preview(widthDp = 200, heightDp = 200)
-    @Composable
-    fun TunedView() {
-        TunerScreen(TunerState.Tuned(NotesEnum.A))
+    private fun shouldUpdateTunerState(pitchInHz: Double, audioEvent: AudioEvent): Boolean {
+        return audioEvent.getdBSPL() > MIC_THRESHOLD &&
+                System.currentTimeMillis() - lastPitchUpdate > 250 &&
+                pitchInHz != -1.0
+    }
+
+    private fun saveLastUpdatedState() {
+        lastPitchUpdate = System.currentTimeMillis()
     }
 
     @Preview(widthDp = 200, heightDp = 200)
     @Composable
-    fun OutOfTuneViewDown() {
-        TunerScreen(TunerState.Down(NotesEnum.A))
-    }
+    fun TunedView() = TunerScreen(TunerState.Tuned(NotesEnum.A))
 
     @Preview(widthDp = 200, heightDp = 200)
     @Composable
-    fun OutOfTuneViewUp() {
-        TunerScreen(TunerState.Up(NotesEnum.A))
-    }
+    fun OutOfTuneViewDown() = TunerScreen(TunerState.Down(NotesEnum.A))
+
+    @Preview(widthDp = 200, heightDp = 200)
+    @Composable
+    fun OutOfTuneViewUp() = TunerScreen(TunerState.Up(NotesEnum.A))
 
     companion object {
         const val MIC_THRESHOLD = -60
