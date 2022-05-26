@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,9 +39,13 @@ fun TunerScreen(tunerState: TunerState) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            LeftArrow(isVisible = tunerState is TunerState.Down)
-            TextNote(note = tunerState.note.title)
-            RightArrow(isVisible = tunerState is TunerState.Up)
+            if (tunerState !is TunerState.NoSound) {
+                LeftArrow(isVisible = tunerState is TunerState.Down)
+                TextNote(note = tunerState.note?.title)
+                RightArrow(isVisible = tunerState is TunerState.Up)
+            } else {
+                PlayNote()
+            }
         }
     }
 }
@@ -54,6 +60,17 @@ private fun TextNote(note: String?) {
         modifier = Modifier
             .width(84.dp)
             .wrapContentHeight()
+    )
+}
+
+@Composable
+private fun PlayNote() {
+    Text(
+        text = stringResource(id = R.string.play_a_note),
+        textAlign = TextAlign.Center,
+        fontWeight = FontWeight.Medium,
+        fontSize = 26.sp,
+        modifier = Modifier.wrapContentSize()
     )
 }
 

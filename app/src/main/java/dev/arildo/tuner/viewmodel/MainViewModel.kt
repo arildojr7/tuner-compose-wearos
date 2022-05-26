@@ -26,6 +26,8 @@ class MainViewModel : ViewModel() {
     private var lastPitchUpdate = 0L
 
     fun startAudioListener() = viewModelScope.launch(Dispatchers.Default) {
+        _tunerState.postValue(TunerState.NoSound)
+
         val dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(
             SAMPLE_RATE, BUFFER_SIZE, BUFFER_OVERLAP
         )

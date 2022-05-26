@@ -1,5 +1,6 @@
 package dev.arildo.tuner.ui
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,13 +12,16 @@ import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
-import dev.arildo.tuner.viewmodel.MainViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
 import dev.arildo.tuner.core.NotesEnum
 import dev.arildo.tuner.core.TunerState
 import dev.arildo.tuner.core.preventAutoLockScreen
-import dev.arildo.tuner.core.requestMicrophonePermission
+import dev.arildo.tuner.viewmodel.MainViewModel
 
 @ExperimentalWearMaterialApi
+@ExperimentalPermissionsApi
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
@@ -25,16 +29,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         preventAutoLockScreen(window)
 
-        requestMicrophonePermission()
-
-        viewModel.startAudioListener()
-
         setContent {
+            val micPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+
             MaterialTheme {
-                Scaffold(
-                    timeText = { TimeText() }
-                ) {
-                    viewModel.tunerState.observeAsState().value?.run { TunerScreen(this) }
+                when (micPermissionState.status) {
+                    is PermissionStatus.Granted -> {
+                        viewModel.startAudioListener()
+
+                        Scaffold(
+                            timeText = { TimeText() }
+                        ) {
+                            viewModel.tunerState.observeAsState().value?.run {
+                                TunerScreen(this)
+                            }
+                        }
+                    }
+                    is PermissionStatus.Denied -> WithoutPermissionScreen(micPermissionState)
                 }
             }
         }
@@ -51,5 +62,9 @@ class MainActivity : ComponentActivity() {
     @Preview(widthDp = 200, heightDp = 200)
     @Composable
     fun OutOfTuneViewUp() = TunerScreen(TunerState.Up(NotesEnum.A))
+
+    @Preview(widthDp = 200, heightDp = 200)
+    @Composable
+    fun NoSound() = TunerScreen(TunerState.NoSound)
 
 }

@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="dev.arildo.tuner">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-feature android:name="android.hardware.type.watch" />
+
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault">
+        android:theme="@android:style/ThemeOverlay.Material.Dark">
         <uses-library
             android:name="com.google.android.wearable"
             android:required="true" />
@@ -26,8 +28,9 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
+            android:forceDarkAllowed="true"
             android:keepScreenOn="true"
-            android:label="@string/app_name">
+            tools:targetApi="q">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
