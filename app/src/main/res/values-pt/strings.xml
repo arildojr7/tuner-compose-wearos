@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Chromatic Tuner</string>
+    <string name="play_a_note">toque uma nota</string>
+    <string name="request_permission_message">Precisamos de acesso ao microfone para reconhecer as notas</string>
+    <string name="grant_permission">conceder permissão</string>
+</resources>

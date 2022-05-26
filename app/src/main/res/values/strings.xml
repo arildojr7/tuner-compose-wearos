@@ -1,8 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">tuner</string>
-    <!--
-    This string is used for square devices and overridden by hello_world in
-    values-round/strings.xml for round devices.
-    -->
-    <string name="hello_world">Hello Square World!</string>
+    <string name="app_name">Chromatic Tuner</string>
+    <string name="play_a_note">play a note</string>
+    <string name="request_permission_message">We need microphone access to recognize notes</string>
+    <string name="grant_permission">grant permission</string>
 </resources>
