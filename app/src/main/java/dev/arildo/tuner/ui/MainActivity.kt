@@ -1,12 +1,12 @@
 package dev.arildo.tuner.ui
 
-import android.Manifest
+import android.Manifest.permission.RECORD_AUDIO
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.MaterialTheme
@@ -30,19 +30,13 @@ class MainActivity : ComponentActivity() {
         preventAutoLockScreen(window)
 
         setContent {
-            val micPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+            val micPermissionState = rememberPermissionState(RECORD_AUDIO)
 
             MaterialTheme {
                 when (micPermissionState.status) {
                     is PermissionStatus.Granted -> {
-                        viewModel.startAudioListener()
-
-                        Scaffold(
-                            timeText = { TimeText() }
-                        ) {
-                            viewModel.tunerState.observeAsState().value?.run {
-                                TunerScreen(this)
-                            }
+                        Scaffold(timeText = { TimeText() }) {
+                            TunerScreen(viewModel.tunerState.collectAsState().value)
                         }
                     }
                     is PermissionStatus.Denied -> {
@@ -51,6 +45,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.startAudioListener(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.stopAudioListener()
     }
 
     @Preview(widthDp = 200, heightDp = 200)

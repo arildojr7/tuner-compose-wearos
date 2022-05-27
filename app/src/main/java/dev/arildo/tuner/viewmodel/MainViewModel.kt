@@ -1,55 +1,60 @@
 package dev.arildo.tuner.viewmodel
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
+import be.tarsos.dsp.AudioDispatcher
 import be.tarsos.dsp.AudioEvent
-import be.tarsos.dsp.io.android.AudioDispatcherFactory
+import be.tarsos.dsp.io.android.AudioDispatcherFactory.fromDefaultMicrophone
 import be.tarsos.dsp.pitch.PitchDetectionHandler
 import be.tarsos.dsp.pitch.PitchProcessor
-import be.tarsos.dsp.pitch.PitchProcessor.PitchEstimationAlgorithm
+import be.tarsos.dsp.pitch.PitchProcessor.PitchEstimationAlgorithm.FFT_YIN
 import dev.arildo.tuner.core.NotesEnum
 import dev.arildo.tuner.core.TunerState
+import dev.arildo.tuner.core.hasMicrophonePermission
 import dev.arildo.tuner.core.isInPermittedTolerance
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @ExperimentalWearMaterialApi
 class MainViewModel : ViewModel() {
 
-    private val _tunerState = MutableLiveData<TunerState>()
-    val tunerState = Transformations.map(_tunerState) { it }
+    private val _tunerState = MutableStateFlow<TunerState>(TunerState.NoSound)
+
+    val tunerState: StateFlow<TunerState>
+        get() = _tunerState.asStateFlow()
+
+    private var dispatcher: AudioDispatcher? = null
 
     private var lastPitchUpdate = 0L
 
-    fun startAudioListener() = viewModelScope.launch(Dispatchers.Default) {
-        _tunerState.postValue(TunerState.NoSound)
+    fun startAudioListener(context: Context) = viewModelScope.launch(Dispatchers.Default) {
+        if (!hasMicrophonePermission(context)) return@launch
 
-        val dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(
-            SAMPLE_RATE, BUFFER_SIZE, BUFFER_OVERLAP
-        )
+        dispatcher = fromDefaultMicrophone(SAMPLE_RATE.toInt(), BUFFER_SIZE, BUFFER_OVERLAP)
 
-        val pitchProcessor = PitchProcessor(
-            PitchEstimationAlgorithm.FFT_YIN,
-            SAMPLE_RATE.toFloat(),
-            BUFFER_SIZE,
-            pitchDetectionHandler()
-        )
+        val processor = PitchProcessor(FFT_YIN, SAMPLE_RATE, BUFFER_SIZE, pitchDetectionHandler())
 
-        dispatcher.addAudioProcessor(pitchProcessor)
-        dispatcher.run()
+        dispatcher?.addAudioProcessor(processor)
+        dispatcher?.run()
     }
 
-    private fun pitchDetectionHandler() = PitchDetectionHandler { result, audioEvent ->
-        val pitchInHz = result.pitch.toDouble()
-        if (shouldUpdateTunerState(pitchInHz, audioEvent)) {
-            val capturedNoteState = getCurrentPitchState(pitchInHz)
-            _tunerState.postValue(capturedNoteState)
+    fun stopAudioListener() = dispatcher?.stop()
 
-            saveLastUpdatedTime()
+    private fun pitchDetectionHandler() = PitchDetectionHandler { result, audioEvent ->
+        viewModelScope.launch(Dispatchers.Default) {
+            val pitchInHz = result.pitch.toDouble()
+            if (shouldUpdateTunerState(pitchInHz, audioEvent)) {
+                val capturedNoteState = getCurrentPitchState(pitchInHz)
+                _tunerState.emit(capturedNoteState)
+
+                saveLastUpdatedTime()
+            }
         }
     }
 
@@ -80,10 +85,10 @@ class MainViewModel : ViewModel() {
     }
 
     companion object {
-        const val MIC_THRESHOLD = -60
-        const val MIN_UPDATE_TIME = 250
+        const val MIC_THRESHOLD = -60 // in decibels
+        const val MIN_UPDATE_TIME = 250 // in milliseconds
         const val INVALID_PITCH = -1.0
-        const val SAMPLE_RATE = 22050
+        const val SAMPLE_RATE = 22050F
         const val BUFFER_SIZE = 1024
         const val BUFFER_OVERLAP = 0
     }
