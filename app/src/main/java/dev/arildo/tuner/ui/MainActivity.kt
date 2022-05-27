@@ -45,7 +45,9 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    is PermissionStatus.Denied -> WithoutPermissionScreen(micPermissionState)
+                    is PermissionStatus.Denied -> {
+                        WithoutPermissionScreen { micPermissionState.launchPermissionRequest() }
+                    }
                 }
             }
         }

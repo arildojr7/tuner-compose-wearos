@@ -17,13 +17,12 @@ import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Text
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
 import dev.arildo.tuner.R
 import dev.arildo.tuner.ui.theme.TunedColor
 
 @ExperimentalPermissionsApi
 @Composable
-fun WithoutPermissionScreen(cameraPermissionState: PermissionState) {
+fun WithoutPermissionScreen(launchPermissionRequest: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,7 +40,7 @@ fun WithoutPermissionScreen(cameraPermissionState: PermissionState) {
         Button(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(backgroundColor = TunedColor),
-            onClick = { cameraPermissionState.launchPermissionRequest() }
+            onClick = { launchPermissionRequest() }
         ) {
             Text(stringResource(R.string.grant_permission))
         }
